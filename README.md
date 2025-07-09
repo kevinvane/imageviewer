@@ -2,6 +2,14 @@
 
 提供查看缩略视图到原视图的无缝过渡转变的视觉效果，优雅的浏览普通图、长图、动图.
 
+#### 构建
+
+```
+$ ./gradlew dependencies
+$ ./gradlew assemble
+$ ./gradlew clean assemble
+```
+
 #### 主要特征
 
 - **过渡动画** 缩略图到大图或大图到缩略图时提供无缝衔接动画

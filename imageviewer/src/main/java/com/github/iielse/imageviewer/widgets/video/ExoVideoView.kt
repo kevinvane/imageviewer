@@ -1,19 +1,22 @@
 package com.github.iielse.imageviewer.widgets.video
 
 import android.content.Context
+import android.net.Uri
 import android.util.AttributeSet
+import android.util.Log
 import android.view.TextureView
 import com.github.iielse.imageviewer.utils.Config
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.analytics.AnalyticsListener
-import com.google.android.exoplayer2.util.EventLogger
-import com.google.android.exoplayer2.video.VideoSize
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.util.EventLogger
 import kotlin.math.max
 import kotlin.math.min
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 open class ExoVideoView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -34,7 +37,7 @@ open class ExoVideoView @JvmOverloads constructor(
     }
 
     private val logger by lazy { EventLogger(null) }
-    private var exoPlayer: SimpleExoPlayer? = null
+    private var exoPlayer: ExoPlayer? = null
     private var videoRenderedCallback: VideoRenderedListener? = null
     private val listeners = mutableListOf<AnalyticsListener>()
     private var playUrl: String? = null
@@ -43,6 +46,7 @@ open class ExoVideoView @JvmOverloads constructor(
     val scaleType get() = st
     private var ar = true
     val autoRelease get() = ar
+
 
     fun prepare(url: String) {
         playUrl = url
@@ -106,9 +110,11 @@ open class ExoVideoView @JvmOverloads constructor(
         val url = playUrl ?: return null
         if (exoPlayer == null) {
             prepared = false
-            alpha = 0f
+            alpha = 1f
             newExoPlayer()
+
             exoPlayer?.setMediaItems(provider?.provide(url) ?: listOf(MediaItem.fromUri(url)))
+            exoPlayer?.playWhenReady = true
             exoPlayer?.prepare()
         }
         return exoPlayer
@@ -116,7 +122,7 @@ open class ExoVideoView @JvmOverloads constructor(
 
     private fun newExoPlayer(): ExoPlayer {
         release()
-        return SimpleExoPlayer.Builder(context).build().also {
+        return ExoPlayer.Builder(context).build().also {
             it.setVideoTextureView(this)
             it.addListener(videoListener)
             if (Config.DEBUG) it.addAnalyticsListener(logger)
@@ -125,11 +131,41 @@ open class ExoVideoView @JvmOverloads constructor(
         }
     }
 
+    // private fun newExoPlayer(): ExoPlayer {
+    //     release()
+    //     return SimpleExoPlayer.Builder(context).build().also {
+    //         it.setVideoTextureView(this)
+    //         it.addListener(videoListener)
+    //         if (Config.DEBUG) it.addAnalyticsListener(logger)
+    //         listeners.toList().forEach { userListener -> it.addAnalyticsListener(userListener) }
+    //         exoPlayer = it
+    //     }
+    // }
+
     private val videoListener = object : Player.Listener {
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            Log.d("ExoVideoView", "isPlaying = $isPlaying")
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            when (playbackState) {
+                Player.STATE_IDLE -> Log.d("ExoVideoView", "STATE_IDLE")
+                Player.STATE_BUFFERING -> Log.d("ExoVideoView", "STATE_BUFFERING")
+                Player.STATE_READY -> Log.d("ExoVideoView", "STATE_READY")
+                Player.STATE_ENDED -> Log.d("ExoVideoView", "STATE_ENDED")
+            }
+        }
         override fun onVideoSizeChanged(
             videoSize: VideoSize
         ) {
+            Log.d("ExoVideoView", "Video size changed: $videoSize")
             updateTextureViewSize(videoSize.width, videoSize.height)
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            // 打印错误日志
+            Log.e("ExoVideoView", "Player error: ${error.message}", error)
         }
     }
 
