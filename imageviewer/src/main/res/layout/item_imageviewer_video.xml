@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.github.iielse.imageviewer.widgets.video.ExoVideoView2
         android:id="@+id/videoView"
@@ -13,4 +14,15 @@
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <androidx.media3.ui.PlayerControlView
+        android:id="@+id/exo_player_control_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        android:layout_gravity="bottom"
+        app:show_timeout="0"
+        app:buffered_color="@color/buffered_color"
+        app:played_color="@color/played_color"
+        app:unplayed_color="@color/unplayed_color"/>
 </FrameLayout>
