@@ -110,11 +110,11 @@ open class ExoVideoView @JvmOverloads constructor(
         val url = playUrl ?: return null
         if (exoPlayer == null) {
             prepared = false
-            alpha = 1f
+            alpha = 0f
             newExoPlayer()
 
             exoPlayer?.setMediaItems(provider?.provide(url) ?: listOf(MediaItem.fromUri(url)))
-            exoPlayer?.playWhenReady = true
+            exoPlayer?.playWhenReady = false // 不自动播放， 选中Item时主动播放
             exoPlayer?.prepare()
         }
         return exoPlayer
